@@ -5,28 +5,28 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://40823132.github.io/wcm2022/blog/</loc>
-<lastmod>2022-04-22T11:30:56-00:00</lastmod>
+<lastmod>2022-04-22T11:35:06-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://40823132.github.io/wcm2022/blog/archives.html</loc>
-<lastmod>2022-04-22T11:30:56-00:00</lastmod>
+<lastmod>2022-04-22T11:35:06-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://40823132.github.io/wcm2022/blog/tags.html</loc>
-<lastmod>2022-04-22T11:30:56-00:00</lastmod>
+<lastmod>2022-04-22T11:35:06-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://40823132.github.io/wcm2022/blog/categories.html</loc>
-<lastmod>2022-04-22T11:30:56-00:00</lastmod>
+<lastmod>2022-04-22T11:35:06-00:00</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
@@ -40,42 +40,28 @@ xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
 <url>
 <loc>https://40823132.github.io/wcm2022/blog/midterm.html</loc>
-<lastmod>2022-04-22T11:27:50+08:00</lastmod>
-<changefreq>monthly</changefreq>
-<priority>0.5</priority>
-</url>
-
-<url>
-<loc>https://40823132.github.io/wcm2022/blog/2020-Fall-Intro-to-computer-programming.html</loc>
-<lastmod>2022-03-02T19:46:02+08:00</lastmod>
+<lastmod>2022-04-22T11:34:04+08:00</lastmod>
 <changefreq>monthly</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://40823132.github.io/wcm2022/blog/category/misc.html</loc>
-<lastmod>2022-04-22T11:27:50+08:06</lastmod>
+<lastmod>2022-04-22T11:34:04+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://40823132.github.io/wcm2022/blog/tag/2022wcm.html</loc>
-<lastmod>2022-04-22T11:27:50+08:06</lastmod>
-<changefreq>daily</changefreq>
-<priority>0.5</priority>
-</url>
-
-<url>
-<loc>https://40823132.github.io/wcm2022/blog/tag/2020fallcp.html</loc>
-<lastmod>2022-03-02T19:46:02+08:06</lastmod>
+<lastmod>2022-04-22T11:34:04+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
 
 <url>
 <loc>https://40823132.github.io/wcm2022/blog/author/yen.html</loc>
-<lastmod>2022-04-22T11:27:50+08:06</lastmod>
+<lastmod>2022-04-22T11:34:04+08:06</lastmod>
 <changefreq>daily</changefreq>
 <priority>0.5</priority>
 </url>
