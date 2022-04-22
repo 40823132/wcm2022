@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>CMSimfly 網際內容管理 - Misc</title><link href="https://40823132.github.io/wcm2022/blog/" rel="alternate"></link><link href="https://40823132.github.io/wcm2022/blog/feeds/misc.atom.xml" rel="self"></link><id>https://40823132.github.io/wcm2022/blog/</id><updated>2022-04-22T11:21:08+08:00</updated><entry><title>2022 wcm課程</title><link href="https://40823132.github.io/wcm2022/blog/midterm.html" rel="alternate"></link><published>2022-04-22T11:00:00+08:00</published><updated>2022-04-22T11:21:08+08:00</updated><author><name>yen</name></author><id>tag:40823132.github.io,2022-04-22:/wcm2022/blog/midterm.html</id><summary type="html">&lt;p&gt;2022 . 期中&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>CMSimfly 網際內容管理 - Misc</title><link href="https://40823132.github.io/wcm2022/blog/" rel="alternate"></link><link href="https://40823132.github.io/wcm2022/blog/feeds/misc.atom.xml" rel="self"></link><id>https://40823132.github.io/wcm2022/blog/</id><updated>2022-04-22T11:27:50+08:00</updated><entry><title>2022 wcm課程</title><link href="https://40823132.github.io/wcm2022/blog/midterm.html" rel="alternate"></link><published>2022-04-22T11:00:00+08:00</published><updated>2022-04-22T11:27:50+08:00</updated><author><name>yen</name></author><id>tag:40823132.github.io,2022-04-22:/wcm2022/blog/midterm.html</id><summary type="html">&lt;p&gt;2022 . 期中&lt;/p&gt;
 </summary><content type="html">&lt;p&gt;2022 . 期中&lt;/p&gt;
 
 
 &lt;h2&gt;Python&lt;/h2&gt;
-&lt;p&gt;div class="winkVideoContainerClass"&amp;gt;&lt;video width="800" height="600" autoplay="autoplay" class="winkVideoClass" data-dirname="./../cmsimde/static" data-varname="winkVideoData2" loop="loop" muted="" playsinline=""&gt;
-&lt;source src="./../downloads/w8_project.mp4" type="video/mp4" /&gt;&lt;/video&gt;&lt;/p&gt;
+&lt;video width="800" height="600" autoplay="autoplay" class="winkVideoClass" data-dirname="./../cmsimde/static" data-varname="winkVideoData2" loop="loop" muted="" playsinline=""&gt;
+&lt;source src="./../downloads/w8_project.mp4" type="video/mp4" /&gt;&lt;/video&gt;
 &lt;div class="winkVideoOverlayClass"&gt;&lt;/div&gt;
 &lt;div class="winkVideoControlBarClass"&gt;&lt;button class="winkVideoControlBarPlayButtonClass"&gt;&lt;/button&gt; &lt;button class="winkVideoControlBarPauseButtonClass"&gt;&lt;/button&gt;
 &lt;div class="winkVideoControlBarProgressLeftClass"&gt;&lt;/div&gt;
