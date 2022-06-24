@@ -2,8 +2,9 @@
 <p>wcm2022</p>
 <h1>w17</h1>
 <p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/tVnTVd27rIk" title="YouTube video player" width="560"></iframe></p>
-<p>任務說明心得: 現在的這個下落速度要玩到六分不難，本來想加快速度，但是我拍影片速度太慢所以就先上傳一般速度的遊玩片段，說明晚點上傳。</p><h1>學習歷程</h1>
-<p></p>
+<p><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="allowfullscreen" frameborder="0" height="315" src="https://www.youtube.com/embed/NC4Jo2WqVwA" title="YouTube video player" width="560"></iframe></p>
+<p>任務說明心得: 現在的這個下落速度要玩到六分不難，本來想加快速度，但是我拍影片速度太慢所以就先上傳一般速度的遊玩片段。</p>
+<h1>學習歷程</h1>
 <p>week01 創建 wcm2022 倉儲</p>
 <p>            並建立 網站設定 SSH。</p>
 <p>week02 使用 wink 練習。</p>
@@ -12,8 +13,611 @@
 <p>week13 在網頁中配置 Brython 程式環境</p>
 <p>week14 線上作業 分組名單</p>
 <p>week15 線上作業 配置 Brython 程式 tetris</p>
-<p>week16 線上作業 為 tetris 添加計分系統</p>
-<h1>H1 midterm</h1>
+<p>week16 線上作業 為 tetris 添加計分系統</p><h1>期末任務1</h1>
+<!-- 導入 brython 程式庫 -->
+<script src="/static/brython.js"></script>
+<script src="/static/brython_stdlib.js"></script>
+<!-- 啟動 Brython -->
+<script>
+window.onload=function(){
+brython({debug:1, pythonpath:['/static/','./../downloads/py/']});}
+</script>
+<div id="brython_div"></div>
+<!-- 導入 tetris python 程式 -->
+<script type="text/python3">
+# from https://levelup.gitconnected.com/writing-tetris-in-python-2a16bddb5318
+# 暫時關閉 system proxy 設定後,  pip install pygame
+#import pygame
+# 導入 random 模組
+import random
+# 以下為 Brython 新增
+# 從 Brython程式庫中的 browser 模組 導入document 簡寫為 doc
+from browser import document as doc
+# 從 browser 導入 html 類別，主要用於建立 CANVAS 標註物件，並插入頁面中
+from browser import html    
+# 導入 browser.timer ，用於定時執行特定函數
+import browser.timer
+
+# 利用 html 建立一個 CANVAS 標註物件, 與變數 canvas 對應, 並設定畫布的長寬
+canvas = html.CANVAS(width = 400, height = 500, id="canvas")
+
+# 將 document 中 id 為 "brython_div" 的標註， 設為與 brython_div 變數對應
+brython_div = doc["brython_div"]
+# 將 canvas 標註放入 brython_div 所在位置，頁面中原本就已經放入 <div id = "brython_div"> 標註
+brython_div <= canvas
+# 將canvas 的 2d 繪圖 context 命名為 ctx
+ctx = canvas.getContext("2d")
+
+# 設定RGB, 7種顏色
+colors = [
+    (0, 0, 0),
+    (120, 37, 179),
+    (100, 179, 179),
+    (80, 34, 22),
+    (80, 134, 22),
+    (180, 34, 22),
+    (180, 34, 122),
+]
+
+# 新增 Figure 類別,  7種方塊旋轉後的各種狀態, 宣告x、y為0
+class Figure:
+    x = 0
+    y = 0
+
+    figures = [
+        [[1, 5, 9, 13], [4, 5, 6, 7]],
+        [[4, 5, 9, 10], [2, 6, 5, 9]],
+        [[6, 7, 9, 10], [1, 5, 6, 10]],
+        [[1, 2, 5, 9], [0, 4, 5, 6], [1, 5, 9, 8], [4, 5, 6, 10]],
+        [[1, 2, 6, 10], [5, 6, 7, 9], [2, 6, 10, 11], [3, 5, 6, 7]],
+        [[1, 4, 5, 6], [1, 4, 5, 9], [4, 5, 6, 9], [1, 5, 6, 9]],
+        [[1, 2, 5, 6]],
+    ]
+    
+    # 定義 __init__ 的功能，隨機選擇一種類型和一種顏色
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.type = random.randint(0, len(self.figures) - 1)
+        self.color = random.randint(1, len(colors) - 1)
+        self.rotation = 0
+        
+    # 定義亂數產生的方塊顏色及旋轉
+    def image(self):
+        return self.figures[self.type][self.rotation]
+
+    # 定義方塊做順時針旋轉
+    def rotate(self):
+        self.rotation = (self.rotation + 1) % len(self.figures[self.type])
+    
+    # 定義方塊做逆時針旋轉
+    def rotate1(self):
+        self.rotation = (self.rotation - 1) % len(self.figures[self.type])
+
+# 新增 Tetris 類別，初始化遊戲裡的一些變數
+class Tetris:
+    level = 2
+    score = 0
+    state = "start"
+    field = []
+    height = 0
+    width = 0
+    x = 100
+    y = 60
+    zoom = 20
+    figure = None
+
+    # 定義 __init__ 的功能
+    def __init__(self, height, width):
+        self.height = height
+        self.width = width
+        self.field = []
+        self.score = 0
+        self.state = "start"
+        for i in range(height):
+            new_line = []
+            for j in range(width):
+                # 起始時每一個都填入 0
+                new_line.append(0)
+            self.field.append(new_line)
+
+    # 新增方塊並放在(3, 0)的位置
+    def new_figure(self):
+        self.figure = Figure(3, self.height-5)
+    
+    # 檢查當前正在下降的方塊是否與在場地上的方塊交錯
+    def intersects(self):
+        intersection = False
+        for i in range(4):
+            for j in range(4):
+                if i * 4 + j in self.figure.image():
+                    # block 到達底部, 左右兩邊界, 或該座標有其他 block
+                    if i + self.figure.y > self.height - 1 or  \
+                            i + self.figure.y < 0 or \
+                            j + self.figure.x > self.width - 1 or \
+                            j + self.figure.x < 0 or \
+                            self.field[i + self.figure.y][j + self.figure.x] > 0:
+                        intersection = True
+        return intersection
+
+    # 如果有完整的水平線則消除掉
+    def break_lines(self):
+        lines = 0
+        for i in range(0, self.height):
+            zeros = 0
+            for j in range(self.width):
+                if self.field[i][j] == 0:
+                    zeros += 1
+            if zeros == 0:
+                lines += 1
+                for i1 in range(i+1, self.height):
+                    for j in range(self.width):
+                        self.field[i1-1][j] = self.field[i1][j]
+        self.score += lines ** 2
+
+    # 定義方塊直接下降到最底下
+    def go_space(self):
+        while not self.intersects():
+            self.figure.y -= 1
+        self.figure.y += 1
+        self.freeze()
+    
+    # 定義方塊向下移動
+    def go_down(self):
+        self.figure.y -= 1
+        if self.intersects():
+            self.figure.y += 1
+            self.freeze()
+
+    # 判斷方塊是否與場地上的方塊交錯，如果是，則遊戲結束
+    def freeze(self):
+        for i in range(4):
+            for j in range(4):
+                if i * 4 + j in self.figure.image():
+                    self.field[i + self.figure.y][j + self.figure.x] = self.figure.color
+        self.break_lines()
+        self.new_figure()
+        if self.intersects():
+            self.state = "gameover"
+
+    # 定義方塊向左右移動的函式
+    def go_side(self, dx):
+        old_x = self.figure.x
+        self.figure.x += dx
+        if self.intersects():
+            self.figure.x = old_x
+
+    # 定義方塊向逆時針旋轉的函式
+    def rotate(self):
+        old_rotation = self.figure.rotation
+        self.figure.rotate()
+        if self.intersects():
+            self.figure.rotation = old_rotation
+            
+    # 定義方塊向順時針旋轉的函式
+    def rotate1(self):
+        old_rotation = self.figure.rotation
+        self.figure.rotate1()
+        if self.intersects():
+            self.figure.rotation = old_rotation
+
+# Define some colors
+# from https://stackoverflow.com/questions/3380726/converting-a-rgb-color-tuple-to-a-six-digit-code
+# 宣告顏色的RGB值
+BLACK = '#%02x%02x%02x' % (0, 0, 0)
+WHITE = '#%02x%02x%02x' % (255, 255, 255)
+GRAY = '#%02x%02x%02x' % (128, 128, 128)
+RED = "red"
+
+done = False
+fps = 60
+game = Tetris(20, 10)
+counter = 0
+
+pressing_down = False
+
+# 定義按鍵設定
+def key_down(eve):
+    key = eve.keyCode
+    #if event.type == pygame.QUIT:
+    # 32 is pause
+    if key == 32:
+        done = True
+    # 88 is x key to clockwise rotate
+    if key == 88:
+        game.rotate1()
+    # 90 is z key to anticlockwise rotate
+    if key == 90:
+        game.rotate()
+    # 67 is c key to drop -1 on the y-axis
+    if key == 67:
+        game.go_down()
+    # 40 is down key
+    if key == 40:
+        pressing_down = True
+    # 37 is left key
+    if key == 37:
+        game.go_side(-1)
+    # 39 is right key
+    if key == 39:
+        game.go_side(1)
+    # 32 is space key to move block to bottom
+    if key == 32:
+        game.go_space()
+    # 27 is escape
+    # reset the game
+    if key == 27:
+        game.__init__(20, 10)
+
+def key_up(eve):
+    key = eve.keyCode
+    # 40 is down key
+    if key == 40:
+        pressing_down = False
+
+#while not done:
+# 定義開始遊戲後的設定
+def do_game():
+    global counter
+    if game.figure is None:
+        game.new_figure()
+    counter += 1
+    if counter > 100000:
+        counter = 0
+    if counter % (fps // game.level // 2) == 0 or pressing_down:
+        if game.state == "start":
+            game.go_down()
+    #畫格子
+    for i in range(game.height):
+        for j in range(game.width):
+            ctx.fillStyle = WHITE
+            #ctx.scale(game.zoom, game.zoom)
+            ctx.fillRect(game.x + game.zoom * j, game.y + game.zoom * i, game.zoom, game.zoom)
+            if game.field[i][j] > 0:
+                ctx.fillStyle = '#%02x%02x%02x' % colors[game.field[i][j]]
+                ctx.fillRect(game.x + game.zoom * j + 1, game.y + game.zoom * i + 1, game.zoom - 2, game.zoom - 1)
+            ctx.lineWidth = 1
+            ctx.strokeStyle = GRAY
+            ctx.beginPath()
+            ctx.rect(game.x + game.zoom * j, game.y + game.zoom * i, game.zoom, game.zoom)
+            ctx.stroke()
+    if game.figure is not None:
+        for i in range(4):
+            for j in range(4):
+                p = i * 4 + j
+                if p in game.figure.image():
+                    ctx.fillStyle = '#%02x%02x%02x' % colors[game.figure.color]
+                    ctx.fillRect(game.x + game.zoom * (j + game.figure.x) + 1,
+                                      game.y + game.zoom * (i + game.figure.y) + 1,
+                                      game.zoom - 2, game.zoom - 2)
+    
+    # 宣告文字的大小為36px
+    ctx.font = '36px serif'
+    # 宣告文字顏色為黑色
+    ctx.fillStyle = BLACK
+    # 將分數顯示在遊戲區上方, 座標為(10, 50), 並設定變數為text
+    ctx.fillText('Score:'+ str(game.score), 10,50)
+    
+    # 宣告變數int = 1 ，如果分數大於int，則畫布清掉原本的分數填上新的得分分數
+    int = 1
+    if game.score >= int:
+        ctx.fillStyle = WHITE
+        ctx.fillRect( 108, 0, 200, 50)
+        ctx.fillStyle = BLACK
+        ctx.fillText(str(game.score), 108,50)
+    
+    # 如果遊戲狀態為gameover，顯示Game Over及Press ESC，並將文字設定為紅色
+    if game.state == "gameover":
+        ctx.fillStyle = RED
+        ctx.fillText("Game Over", 100, 200)
+        ctx.fillText("Press ESC", 105, 265)
+    
+doc.addEventListener("keydown", key_down)
+doc.addEventListener("keyup", key_up)
+browser.timer.set_interval(do_game, fps)
+</script><h1>期末任務2</h1>
+<!-- 導入 brython 程式庫 -->
+<script src="/static/brython.js"></script>
+<script src="/static/brython_stdlib.js"></script>
+<!-- 啟動 Brython -->
+<script>
+window.onload=function(){
+brython({debug:1, pythonpath:['/static/','./../downloads/py/']});}
+</script>
+<div id="brython_div"></div>
+<!-- 導入 tetris python 程式 -->
+<script type="text/python3">
+# from https://levelup.gitconnected.com/writing-tetris-in-python-2a16bddb5318
+# 暫時關閉 system proxy 設定後,  pip install pygame
+#import pygame
+# 導入 random 模組
+import random
+# 以下為 Brython 新增
+# 從 Brython程式庫中的 browser 模組 導入document 簡寫為 doc
+from browser import document as doc
+# 從 browser 導入 html 類別，主要用於建立 CANVAS 標註物件，並插入頁面中
+from browser import html    
+# 導入 browser.timer ，用於定時執行特定函數
+import browser.timer
+
+# 利用 html 建立一個 CANVAS 標註物件, 與變數 canvas 對應, 並設定畫布的長寬
+canvas = html.CANVAS(width = 400, height = 500, id="canvas")
+
+# 將 document 中 id 為 "brython_div" 的標註， 設為與 brython_div 變數對應
+brython_div = doc["brython_div"]
+# 將 canvas 標註放入 brython_div 所在位置，頁面中原本就已經放入 <div id = "brython_div"> 標註
+brython_div <= canvas
+# 將canvas 的 2d 繪圖 context 命名為 ctx
+ctx = canvas.getContext("2d")
+
+# 設定RGB, 7種顏色
+colors = [
+    (0, 0, 0),
+    (120, 37, 179),
+    (100, 179, 179),
+    (80, 34, 22),
+    (80, 134, 22),
+    (180, 34, 22),
+    (180, 34, 122),
+]
+
+# 新增 Figure 類別,  7種方塊旋轉後的各種狀態, 宣告x、y為0
+class Figure:
+    x = 0
+    y = 0
+
+    figures = [
+        [[1, 5, 9, 13], [4, 5, 6, 7]],
+        [[4, 5, 9, 10], [2, 6, 5, 9]],
+        [[6, 7, 9, 10], [1, 5, 6, 10]],
+        [[1, 2, 5, 9], [0, 4, 5, 6], [1, 5, 9, 8], [4, 5, 6, 10]],
+        [[1, 2, 6, 10], [5, 6, 7, 9], [2, 6, 10, 11], [3, 5, 6, 7]],
+        [[1, 4, 5, 6], [1, 4, 5, 9], [4, 5, 6, 9], [1, 5, 6, 9]],
+        [[1, 2, 5, 6]],
+    ]
+    
+    # 定義 __init__ 的功能，隨機選擇一種類型和一種顏色
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.type = random.randint(0, len(self.figures) - 1)
+        self.color = random.randint(1, len(colors) - 1)
+        self.rotation = 0
+        
+    # 定義亂數產生的方塊顏色及旋轉
+    def image(self):
+        return self.figures[self.type][self.rotation]
+
+    # 定義方塊做順時針旋轉
+    def rotate(self):
+        self.rotation = (self.rotation + 1) % len(self.figures[self.type])
+    
+    # 定義方塊做逆時針旋轉
+    def rotate1(self):
+        self.rotation = (self.rotation - 1) % len(self.figures[self.type])
+
+# 新增 Tetris 類別，初始化遊戲裡的一些變數
+class Tetris:
+    level = 2
+    score = 0
+    state = "start"
+    field = []
+    height = 0
+    width = 0
+    x = 100
+    y = 60
+    zoom = 20
+    figure = None
+
+    # 定義 __init__ 的功能
+    def __init__(self, height, width):
+        self.height = height
+        self.width = width
+        self.field = []
+        self.score = 0
+        self.state = "start"
+        for i in range(height):
+            new_line = []
+            for j in range(width):
+                # 起始時每一個都填入 0
+                new_line.append(0)
+            self.field.append(new_line)
+
+    # 新增方塊並放在(3, 0)的位置
+    def new_figure(self):
+        self.figure = Figure(3, self.height-5)
+    
+    # 檢查當前正在下降的方塊是否與在場地上的方塊交錯
+    def intersects(self):
+        intersection = False
+        for i in range(4):
+            for j in range(4):
+                if i * 4 + j in self.figure.image():
+                    # block 到達底部, 左右兩邊界, 或該座標有其他 block
+                    if i + self.figure.y > self.height - 1 or  \
+                            i + self.figure.y < 0 or \
+                            j + self.figure.x > self.width - 1 or \
+                            j + self.figure.x < 0 or \
+                            self.field[i + self.figure.y][j + self.figure.x] > 0:
+                        intersection = True
+        return intersection
+
+    # 如果有完整的水平線則消除掉
+    def break_lines(self):
+        lines = 0
+        for i in range(0, self.height):
+            zeros = 0
+            for j in range(self.width):
+                if self.field[i][j] == 0:
+                    zeros += 1
+            if zeros == 0:
+                lines += 1
+                for i1 in range(i+1, self.height):
+                    for j in range(self.width):
+                        self.field[i1-1][j] = self.field[i1][j]
+        self.score += lines ** 2
+
+    # 定義方塊直接下降到最底下
+    def go_space(self):
+        while not self.intersects():
+            self.figure.y -= 1
+        self.figure.y += 1
+        self.freeze()
+    
+    # 定義方塊向下移動
+    def go_down(self):
+        self.figure.y -= 1
+        if self.intersects():
+            self.figure.y += 1
+            self.freeze()
+
+    # 判斷方塊是否與場地上的方塊交錯，如果是，則遊戲結束
+    def freeze(self):
+        for i in range(4):
+            for j in range(4):
+                if i * 4 + j in self.figure.image():
+                    self.field[i + self.figure.y][j + self.figure.x] = self.figure.color
+        self.break_lines()
+        self.new_figure()
+        if self.intersects():
+            self.state = "gameover"
+
+    # 定義方塊向左右移動的函式
+    def go_side(self, dx):
+        old_x = self.figure.x
+        self.figure.x += dx
+        if self.intersects():
+            self.figure.x = old_x
+
+    # 定義方塊向逆時針旋轉的函式
+    def rotate(self):
+        old_rotation = self.figure.rotation
+        self.figure.rotate()
+        if self.intersects():
+            self.figure.rotation = old_rotation
+            
+    # 定義方塊向順時針旋轉的函式
+    def rotate1(self):
+        old_rotation = self.figure.rotation
+        self.figure.rotate1()
+        if self.intersects():
+            self.figure.rotation = old_rotation
+
+# Define some colors
+# from https://stackoverflow.com/questions/3380726/converting-a-rgb-color-tuple-to-a-six-digit-code
+# 宣告顏色的RGB值
+BLACK = '#%02x%02x%02x' % (0, 0, 0)
+WHITE = '#%02x%02x%02x' % (255, 255, 255)
+GRAY = '#%02x%02x%02x' % (128, 128, 128)
+RED = "red"
+
+done = False
+fps = 60
+game = Tetris(20, 10)
+counter = 0
+
+pressing_down = False
+
+# 定義按鍵設定
+def key_down(eve):
+    key = eve.keyCode
+    #if event.type == pygame.QUIT:
+    # 32 is pause
+    if key == 32:
+        done = True
+    # 88 is x key to clockwise rotate
+    if key == 88:
+        game.rotate1()
+    # 90 is z key to anticlockwise rotate
+    if key == 90:
+        game.rotate()
+    # 67 is c key to drop -1 on the y-axis
+    if key == 67:
+        game.go_down()
+    # 40 is down key
+    if key == 40:
+        pressing_down = True
+    # 37 is left key
+    if key == 37:
+        game.go_side(-1)
+    # 39 is right key
+    if key == 39:
+        game.go_side(1)
+    # 32 is space key to move block to bottom
+    if key == 32:
+        game.go_space()
+    # 27 is escape
+    # reset the game
+    if key == 27:
+        game.__init__(20, 10)
+
+def key_up(eve):
+    key = eve.keyCode
+    # 40 is down key
+    if key == 40:
+        pressing_down = False
+
+#while not done:
+# 定義開始遊戲後的設定
+def do_game():
+    global counter
+    if game.figure is None:
+        game.new_figure()
+    counter += 1
+    if counter > 100000:
+        counter = 0
+    if counter % (fps // game.level // 2) == 0 or pressing_down:
+        if game.state == "start":
+            game.go_down()
+    #畫格子
+    for i in range(game.height):
+        for j in range(game.width):
+            ctx.fillStyle = WHITE
+            #ctx.scale(game.zoom, game.zoom)
+            ctx.fillRect(game.x + game.zoom * j, game.y + game.zoom * i, game.zoom, game.zoom)
+            if game.field[i][j] > 0:
+                ctx.fillStyle = '#%02x%02x%02x' % colors[game.field[i][j]]
+                ctx.fillRect(game.x + game.zoom * j + 1, game.y + game.zoom * i + 1, game.zoom - 2, game.zoom - 1)
+            ctx.lineWidth = 1
+            ctx.strokeStyle = GRAY
+            ctx.beginPath()
+            ctx.rect(game.x + game.zoom * j, game.y + game.zoom * i, game.zoom, game.zoom)
+            ctx.stroke()
+    if game.figure is not None:
+        for i in range(4):
+            for j in range(4):
+                p = i * 4 + j
+                if p in game.figure.image():
+                    ctx.fillStyle = '#%02x%02x%02x' % colors[game.figure.color]
+                    ctx.fillRect(game.x + game.zoom * (j + game.figure.x) + 1,
+                                      game.y + game.zoom * (i + game.figure.y) + 1,
+                                      game.zoom - 2, game.zoom - 2)
+    
+    # 宣告文字的大小為36px
+    ctx.font = '36px serif'
+    # 宣告文字顏色為黑色
+    ctx.fillStyle = BLACK
+    # 將分數顯示在遊戲區上方, 座標為(10, 50), 並設定變數為text
+    ctx.fillText('Score:'+ str(game.score), 10,50)
+    
+    # 宣告變數int = 1 ，如果分數大於int，則畫布清掉原本的分數填上新的得分分數
+    int = 1
+    if game.score >= int:
+        ctx.fillStyle = WHITE
+        ctx.fillRect( 108, 0, 200, 50)
+        ctx.fillStyle = BLACK
+        ctx.fillText(str(game.score), 108,50)
+    
+    # 如果遊戲狀態為gameover，顯示Game Over及Press ESC，並將文字設定為紅色
+    if game.state == "gameover":
+        ctx.fillStyle = RED
+        ctx.fillText("Game Over", 100, 200)
+        ctx.fillText("Press ESC", 105, 265)
+    
+doc.addEventListener("keydown", key_down)
+doc.addEventListener("keyup", key_up)
+browser.timer.set_interval(do_game, fps)
+</script><h1>H1 midterm</h1>
 <p><!--配合 Wink 檔案將 js 檔案設定如下--></p>
 <script>
 var winkVideoData = { dataVersion: 1, frameRate: 10, buttonFrameLength: 5, buttonFrameOffset: 2, frameStops: { }, };
@@ -311,8 +915,7 @@ def do_game():
 doc.addEventListener("keydown", key_down)
 doc.addEventListener("keyup", key_up)
 browser.timer.set_interval(do_game, fps)
-</script>
-<h1>tetris計分</h1>
+</script><h1>tetris計分</h1>
 <!-- 導入 brython 程式庫 -->
 <script src="/static/brython.js"></script>
 <script src="/static/brython_stdlib.js"></script>
