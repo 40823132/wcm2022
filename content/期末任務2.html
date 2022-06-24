@@ -140,308 +140,154 @@ img.add_border {
           
         </header>
     <div id="tipue_search_content">期末任務1 << <a href='期末任務1.html'>Previous</a> <a href='H1 midterm.html'>Next</a> >> H1 midterm<br /><h1>期末任務2</h1>
-<!-- 導入 brython 程式庫 -->
-<script src="./../cmsimde/static/brython.js"></script>
+<script src="./../cmsimde/static/brython.js">
+</script>
 <script src="./../cmsimde/static/brython_stdlib.js"></script>
-<!-- 啟動 Brython -->
+<!-- for ggame -->
+<p>
+<script src="./../cmsimde/static/jquery-3.3.1.min.js"></script>
+<script src="./../cmsimde/static/jquery-ui.1.12.1.min.js"></script>
+<script src="./../cmsimde/static/pixi-3.0.5.min.js"></script>
+<script src="./../cmsimde/static/buzz-1.2.1.js"></script>
+<script src="./../cmsimde/static/bs.js"></script>
+<script src="./../downloads/brython_modules.js"></script>
+</p>
+<!-- Cango 程式庫 -->
+<p>
+<script src="./../cmsimde/static/Cango-24v03-min.js"></script>
+<script src="./../cmsimde/static/CangoAxes-6v01-min.js"></script>
+<script src="./../cmsimde/static/gearUtils-09.js"></script>
+<script src="./../cmsimde/static/SVGpathUtils-6v03-min.js"></script>
+<script src="./../cmsimde/static/sylvester.js"></script>
+<script src="./../cmsimde/static/PrairieDraw.js"></script>
+</p>
+<!-- for Konva 程式庫 -->
+<p>
+<script src="./../cmsimde/static/konva.min.js"></script>
 <script>
 window.onload=function(){
-brython({debug:1, pythonpath:['./../cmsimde/static/','./../downloads/py/']});}
+brython({debug:1, pythonpath:['./../cmsimde/static/','./../downloads/py/']});
+}
 </script>
+</p>
+<p><!-- 導入 FileSaver 與 filereader --></p>
+<p>
+<script src="/cmsimde/static/ace/FileSaver.min.js" type="text/javascript"></script>
+<script src="/cmsimde/static/ace/filereader.js" type="text/javascript"></script>
+</p>
+<p><!-- 導入 ace --></p>
+<p>
+<script src="./../cmsimde/static/ace/ace.js" type="text/javascript"></script>
+<script src="./../cmsimde/static/ace/ext-language_tools.js" type="text/javascript"></script>
+<script src="./../cmsimde/static/ace/mode-python3.js" type="text/javascript"></script>
+<script src="./../cmsimde/static/ace/snippets/python.js" type="text/javascript"></script>
+</p>
+<p><!-- 請注意, 這裡使用 Javascript 將 localStorage["py_src"] 中存在近端瀏覽器的程式碼, 由使用者決定存檔名稱--></p>
+<p>
+<script type="text/javascript">
+function doSave(storage_id, filename){
+    var blob = new Blob([localStorage[storage_id]], {type: "text/plain;charset=utf-8"});
+    filename = document.getElementById(filename).value
+    saveAs(blob, filename+".py");
+}
+</script>
+</p>
+<p></p>
+<p><!-- ######################  editor1 開始 ###################### --></p>
+<p><!-- 用來顯示程式碼的 editor 區域 --></p>
+<div id="kw_editor1" style="width: 600px; height: 300px;"></div>
+<p><!-- 以下的表單與按鈕與前面的 Javascript doSave 函式以及 FileSaver.min.js 互相配合 --></p>
+<p><!-- 存擋表單開始 --></p>
+<form><label>Filename: <input id="kw_filename" placeholder="input file name" type="text"/>.py</label> <input onclick="doSave('kw_py_src1', 'kw_filename1');" type="submit" value="Save"/></form>
+<p><!-- 存擋表單結束 --></p>
+<p></p>
+<p><!-- 執行與清除按鈕開始 --></p>
+<p><button id="kw_run1">Run</button> <button id="kw_show_console1">Output</button> <button id="kw_clear_console1">清除輸出區</button><button id="clear_bd1">清除繪圖區</button><button onclick="window.location.reload()">Reload</button></p>
+<p><!-- 執行與清除按鈕結束 --></p>
+<p></p>
+<p><!-- 程式執行 ouput 區 --></p>
+<div style="width: 100%; height: 100%;"><textarea autocomplete="off" id="kw_console1"></textarea></div>
+<p><!-- Brython 程式執行的結果, 都以 brython_div 作為切入位置 --></p>
+<p><!-- 這裡的畫布 id 為 brython_div --></p>
 <div id="brython_div"></div>
-<!-- 導入 tetris python 程式 -->
+<!-- graphics-column is for ggame -->
+<div class="col-md-0" height="1" id="graphics-column" width="1"></div>
+<p><!-- ######################  editor1 結束 ###################### --></p>
+<p><!-- 以下可以開始利用 editor1 的設定編寫對應 Brython 程式 -->
 <script type="text/python3">
-# from https://levelup.gitconnected.com/writing-tetris-in-python-2a16bddb5318
-# 暫時關閉 system proxy 設定後,  pip install pygame
-#import pygame
-# 導入 random 模組
-import random
-# 以下為 Brython 新增
-# 從 Brython程式庫中的 browser 模組 導入document 簡寫為 doc
 from browser import document as doc
-# 從 browser 導入 html 類別，主要用於建立 CANVAS 標註物件，並插入頁面中
-from browser import html    
-# 導入 browser.timer ，用於定時執行特定函數
-import browser.timer
+import ace
 
-# 利用 html 建立一個 CANVAS 標註物件, 與變數 canvas 對應, 並設定畫布的長寬
-canvas = html.CANVAS(width = 400, height = 500, id="canvas")
+# 清除畫布
+def clear_bd1(ev):
+    # 注意這裡清除的畫布 id 為 brython_div
+    bd = doc["brython_div"]
+    bd.clear()
+Ace1 = ace.Editor(editor_id="kw_editor1", console_id="kw_console1", container_id="kw__container1", storage_id="kw_py_src1" )
+# 從 gist 取出程式碼後, 放入 editor 作為 default 程式
+def run1():
+    # 利用 get 取下 src 變數值
+    try:
+        url = doc.query["src"]
+    except:
+        url = "https://gist.githubusercontent.com/40823132/6b4d8bdee871e82288784ed1d8e0acb0/raw/0f7a34619dc116907688cc116d63466acc4780bb/reverse_Tetris_report_score.py"
+    prog = open(url).read()
 
-# 將 document 中 id 為 "brython_div" 的標註， 設為與 brython_div 變數對應
-brython_div = doc["brython_div"]
-# 將 canvas 標註放入 brython_div 所在位置，頁面中原本就已經放入 <div id = "brython_div"> 標註
-brython_div <= canvas
-# 將canvas 的 2d 繪圖 context 命名為 ctx
-ctx = canvas.getContext("2d")
+    # 將程式載入編輯區
+    Ace1.editor.setValue(prog)
+    Ace1.editor.scrollToRow(0)
+    Ace1.editor.gotoLine(0)
+    # 直接執行程式
+    #ns = {'__name__':'__main__'}
+    #exec(prog, ns)
+    # 按下 run 按鈕
+    Ace1.run()
 
-# 設定RGB, 7種顏色
-colors = [
-    (0, 0, 0),
-    (120, 37, 179),
-    (100, 179, 179),
-    (80, 34, 22),
-    (80, 134, 22),
-    (180, 34, 22),
-    (180, 34, 122),
-]
-
-# 新增 Figure 類別,  7種方塊旋轉後的各種狀態, 宣告x、y為0
-class Figure:
-    x = 0
-    y = 0
-
-    figures = [
-        [[1, 5, 9, 13], [4, 5, 6, 7]],
-        [[4, 5, 9, 10], [2, 6, 5, 9]],
-        [[6, 7, 9, 10], [1, 5, 6, 10]],
-        [[1, 2, 5, 9], [0, 4, 5, 6], [1, 5, 9, 8], [4, 5, 6, 10]],
-        [[1, 2, 6, 10], [5, 6, 7, 9], [2, 6, 10, 11], [3, 5, 6, 7]],
-        [[1, 4, 5, 6], [1, 4, 5, 9], [4, 5, 6, 9], [1, 5, 6, 9]],
-        [[1, 2, 5, 6]],
-    ]
-    
-    # 定義 __init__ 的功能，隨機選擇一種類型和一種顏色
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.type = random.randint(0, len(self.figures) - 1)
-        self.color = random.randint(1, len(colors) - 1)
-        self.rotation = 0
-        
-    # 定義亂數產生的方塊顏色及旋轉
-    def image(self):
-        return self.figures[self.type][self.rotation]
-
-    # 定義方塊做順時針旋轉
-    def rotate(self):
-        self.rotation = (self.rotation + 1) % len(self.figures[self.type])
-    
-    # 定義方塊做逆時針旋轉
-    def rotate1(self):
-        self.rotation = (self.rotation - 1) % len(self.figures[self.type])
-
-# 新增 Tetris 類別，初始化遊戲裡的一些變數
-class Tetris:
-    level = 2
-    score = 0
-    state = "start"
-    field = []
-    height = 0
-    width = 0
-    x = 100
-    y = 60
-    zoom = 20
-    figure = None
-
-    # 定義 __init__ 的功能
-    def __init__(self, height, width):
-        self.height = height
-        self.width = width
-        self.field = []
-        self.score = 0
-        self.state = "start"
-        for i in range(height):
-            new_line = []
-            for j in range(width):
-                # 起始時每一個都填入 0
-                new_line.append(0)
-            self.field.append(new_line)
-
-    # 新增方塊並放在(3, 0)的位置
-    def new_figure(self):
-        self.figure = Figure(3, self.height-5)
-    
-    # 檢查當前正在下降的方塊是否與在場地上的方塊交錯
-    def intersects(self):
-        intersection = False
-        for i in range(4):
-            for j in range(4):
-                if i * 4 + j in self.figure.image():
-                    # block 到達底部, 左右兩邊界, 或該座標有其他 block
-                    if i + self.figure.y > self.height - 1 or  \
-                            i + self.figure.y < 0 or \
-                            j + self.figure.x > self.width - 1 or \
-                            j + self.figure.x < 0 or \
-                            self.field[i + self.figure.y][j + self.figure.x] > 0:
-                        intersection = True
-        return intersection
-
-    # 如果有完整的水平線則消除掉
-    def break_lines(self):
-        lines = 0
-        for i in range(0, self.height):
-            zeros = 0
-            for j in range(self.width):
-                if self.field[i][j] == 0:
-                    zeros += 1
-            if zeros == 0:
-                lines += 1
-                for i1 in range(i+1, self.height):
-                    for j in range(self.width):
-                        self.field[i1-1][j] = self.field[i1][j]
-        self.score += lines ** 2
-
-    # 定義方塊直接下降到最底下
-    def go_space(self):
-        while not self.intersects():
-            self.figure.y -= 1
-        self.figure.y += 1
-        self.freeze()
-    
-    # 定義方塊向下移動
-    def go_down(self):
-        self.figure.y -= 1
-        if self.intersects():
-            self.figure.y += 1
-            self.freeze()
-
-    # 判斷方塊是否與場地上的方塊交錯，如果是，則遊戲結束
-    def freeze(self):
-        for i in range(4):
-            for j in range(4):
-                if i * 4 + j in self.figure.image():
-                    self.field[i + self.figure.y][j + self.figure.x] = self.figure.color
-        self.break_lines()
-        self.new_figure()
-        if self.intersects():
-            self.state = "gameover"
-
-    # 定義方塊向左右移動的函式
-    def go_side(self, dx):
-        old_x = self.figure.x
-        self.figure.x += dx
-        if self.intersects():
-            self.figure.x = old_x
-
-    # 定義方塊向逆時針旋轉的函式
-    def rotate(self):
-        old_rotation = self.figure.rotation
-        self.figure.rotate()
-        if self.intersects():
-            self.figure.rotation = old_rotation
-            
-    # 定義方塊向順時針旋轉的函式
-    def rotate1(self):
-        old_rotation = self.figure.rotation
-        self.figure.rotate1()
-        if self.intersects():
-            self.figure.rotation = old_rotation
-
-# Define some colors
-# from https://stackoverflow.com/questions/3380726/converting-a-rgb-color-tuple-to-a-six-digit-code
-# 宣告顏色的RGB值
-BLACK = '#%02x%02x%02x' % (0, 0, 0)
-WHITE = '#%02x%02x%02x' % (255, 255, 255)
-GRAY = '#%02x%02x%02x' % (128, 128, 128)
-RED = "red"
-
-done = False
-fps = 60
-game = Tetris(20, 10)
-counter = 0
-
-pressing_down = False
-
-# 定義按鍵設定
-def key_down(eve):
-    key = eve.keyCode
-    #if event.type == pygame.QUIT:
-    # 32 is pause
-    if key == 32:
-        done = True
-    # 88 is x key to clockwise rotate
-    if key == 88:
-        game.rotate1()
-    # 90 is z key to anticlockwise rotate
-    if key == 90:
-        game.rotate()
-    # 67 is c key to drop -1 on the y-axis
-    if key == 67:
-        game.go_down()
-    # 40 is down key
-    if key == 40:
-        pressing_down = True
-    # 37 is left key
-    if key == 37:
-        game.go_side(-1)
-    # 39 is right key
-    if key == 39:
-        game.go_side(1)
-    # 32 is space key to move block to bottom
-    if key == 32:
-        game.go_space()
-    # 27 is escape
-    # reset the game
-    if key == 27:
-        game.__init__(20, 10)
-
-def key_up(eve):
-    key = eve.keyCode
-    # 40 is down key
-    if key == 40:
-        pressing_down = False
-
-#while not done:
-# 定義開始遊戲後的設定
-def do_game():
-    global counter
-    if game.figure is None:
-        game.new_figure()
-    counter += 1
-    if counter > 100000:
-        counter = 0
-    if counter % (fps // game.level // 2) == 0 or pressing_down:
-        if game.state == "start":
-            game.go_down()
-    #畫格子
-    for i in range(game.height):
-        for j in range(game.width):
-            ctx.fillStyle = WHITE
-            #ctx.scale(game.zoom, game.zoom)
-            ctx.fillRect(game.x + game.zoom * j, game.y + game.zoom * i, game.zoom, game.zoom)
-            if game.field[i][j] > 0:
-                ctx.fillStyle = '#%02x%02x%02x' % colors[game.field[i][j]]
-                ctx.fillRect(game.x + game.zoom * j + 1, game.y + game.zoom * i + 1, game.zoom - 2, game.zoom - 1)
-            ctx.lineWidth = 1
-            ctx.strokeStyle = GRAY
-            ctx.beginPath()
-            ctx.rect(game.x + game.zoom * j, game.y + game.zoom * i, game.zoom, game.zoom)
-            ctx.stroke()
-    if game.figure is not None:
-        for i in range(4):
-            for j in range(4):
-                p = i * 4 + j
-                if p in game.figure.image():
-                    ctx.fillStyle = '#%02x%02x%02x' % colors[game.figure.color]
-                    ctx.fillRect(game.x + game.zoom * (j + game.figure.x) + 1,
-                                      game.y + game.zoom * (i + game.figure.y) + 1,
-                                      game.zoom - 2, game.zoom - 2)
-    
-    # 宣告文字的大小為36px
-    ctx.font = '36px serif'
-    # 宣告文字顏色為黑色
-    ctx.fillStyle = BLACK
-    # 將分數顯示在遊戲區上方, 座標為(10, 50), 並設定變數為text
-    ctx.fillText('Score:'+ str(game.score), 10,50)
-    
-    # 宣告變數int = 1 ，如果分數大於int，則畫布清掉原本的分數填上新的得分分數
-    int = 1
-    if game.score >= int:
-        ctx.fillStyle = WHITE
-        ctx.fillRect( 108, 0, 200, 50)
-        ctx.fillStyle = BLACK
-        ctx.fillText(str(game.score), 108,50)
-    
-    # 如果遊戲狀態為gameover，顯示Game Over及Press ESC，並將文字設定為紅色
-    if game.state == "gameover":
-        ctx.fillStyle = RED
-        ctx.fillText("Game Over", 100, 200)
-        ctx.fillText("Press ESC", 105, 265)
-    
-doc.addEventListener("keydown", key_down)
-doc.addEventListener("keyup", key_up)
-browser.timer.set_interval(do_game, fps)
-</script><br />期末任務1 << <a href='期末任務1.html'>Previous</a> <a href='H1 midterm.html'>Next</a> >> H1 midterm</div>
+# 執行程式, 顯示輸出結果與清除輸出結果及對應按鈕綁定
+doc['kw_run1'].bind('click', Ace1.run)
+doc['kw_show_console1'].bind('click', Ace1.show_console)
+doc['kw_clear_console1'].bind('click', Ace1.clear_console)
+doc['clear_bd1'].bind('click', clear_bd1)
+# 呼叫函式執行
+run1()
+</script>
+<!-- 以上為內建程式, 頁面可透過 ?src=gist_url 執行 --></p>
+<p></p>
+<!-- <script src="./../cmsimde/static/chimper/js/jquery-3.3.1.min.js"></script> -->
+<script src="./../cmsimde/static/chimper/js/jquery-migrate-3.0.1.min.js"></script>
+<script src="./../cmsimde/static/chimper/js/jquery-ui.js"></script>
+<script src="./../cmsimde/static/chimper/js/popper.min.js"></script>
+<script src="./../cmsimde/static/chimper/js/bootstrap.min.js"></script>
+<script src="./../cmsimde/static/chimper/js/owl.carousel.min.js"></script>
+<script src="./../cmsimde/static/chimper/js/jquery.stellar.min.js"></script>
+<script src="./../cmsimde/static/chimper/js/jquery.countdown.min.js"></script>
+<script src="./../cmsimde/static/chimper/js/jquery.magnific-popup.min.js"></script>
+<script src="./../cmsimde/static/chimper/js/bootstrap-datepicker.min.js"></script>
+<script src="./../cmsimde/static/chimper/js/aos.js"></script>
+<!--
+            <script src="./../cmsimde/static/chimper/js/typed.js"></script>
+                    <script>
+                    var typed = new Typed('.typed-words', {
+                    strings: ["Web Apps"," WordPress"," Mobile Apps"],
+                    typeSpeed: 80,
+                    backSpeed: 80,
+                    backDelay: 4000,
+                    startDelay: 1000,
+                    loop: true,
+                    showCursor: true
+                    });
+                    </script>
+            -->
+<script src="./../cmsimde/static/chimper/js/main.js"></script>
+<!-- 啟用 LaTeX equations 編輯 -->
+<p></p>
+<!-- <script>
+  MathJax = {
+    tex: {inlineMath: [['$', '$'], ['\(', '\)']]}
+  };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>-->
+<p>-&gt;</p><br />期末任務1 << <a href='期末任務1.html'>Previous</a> <a href='H1 midterm.html'>Next</a> >> H1 midterm</div>
         
     <!-- footer -->
       <div class="container">
